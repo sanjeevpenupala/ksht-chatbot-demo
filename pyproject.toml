@@ -1,0 +1,10 @@
+[project]
+name = "ksht-chatbot-demo"
+version = "0.1.0"
+description = "AI Chatbot Demo for Karya Siddhi Hanuman Temple using Tawk.to and Crawl4AI"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "crawl4ai>=0.7.8",
+    "python-dotenv>=1.2.1",
+]
