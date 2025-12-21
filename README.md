@@ -17,21 +17,21 @@ The chatbot is powered by content scraped directly from the temple's website:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     GitHub Pages                             │
+│                     GitHub Pages                            │
 │        index.html with Tawk.to chat widget                  │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                      Tawk.to                                 │
-│   - Live chat widget embedded on the page                    │
-│   - AI Assist answers questions from Knowledge Base          │
+│                      Tawk.to                                │
+│   - Live chat widget embedded on the page                   │
+│   - AI Assist answers questions from Knowledge Base         │
 └─────────────────────────────────────────────────────────────┘
                               ▲
                               │ manual upload
 ┌─────────────────────────────────────────────────────────────┐
-│                  Python Scripts                              │
-│                                                              │
+│                  Python Scripts                             │
+│                                                             │
 │   crawl.py  ──▶  data/raw/*.md   (raw scraped content)      │
 │   clean.py  ──▶  data/cleaned/*.md (AI-cleaned content)     │
 │   convert.py ──▶ data/txt/*.txt  (for Tawk.to upload)       │
