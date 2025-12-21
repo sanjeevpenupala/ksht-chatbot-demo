@@ -15,38 +15,45 @@ from pathlib import Path
 
 # Configuration
 DATA_DIR = Path(__file__).parent.parent / "data"
+CLEANED_DIR = DATA_DIR / "cleaned"  # Source: cleaned markdown
+TXT_DIR = DATA_DIR / "txt"          # Output: text files
+COMBINED_FILE = DATA_DIR / "combined_knowledge_base.txt"  # Combined file at root
 MAX_FILE_SIZE_MB = 5  # Tawk.to TXT limit
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 
 def convert_markdown_to_txt():
-    """Convert all Markdown files to TXT format."""
+    """Convert all cleaned Markdown files to TXT format in txt/ directory."""
 
-    if not DATA_DIR.exists():
-        print(f"Error: Data directory not found: {DATA_DIR}")
+    if not CLEANED_DIR.exists():
+        print(f"Error: Cleaned directory not found: {CLEANED_DIR}")
         print("Run 'uv run scripts/crawl.py' first to crawl the website.")
         exit(1)
 
-    md_files = list(DATA_DIR.glob("*.md"))
+    md_files = list(CLEANED_DIR.glob("*.md"))
 
     if not md_files:
-        print(f"No Markdown files found in {DATA_DIR}")
+        print(f"No Markdown files found in {CLEANED_DIR}")
         print("Run 'uv run scripts/crawl.py' first to crawl the website.")
         exit(1)
 
-    print(f"Found {len(md_files)} Markdown files in {DATA_DIR}")
+    print(f"Found {len(md_files)} Markdown files in {CLEANED_DIR}")
     print("-" * 50)
+
+    # Create txt directory
+    TXT_DIR.mkdir(parents=True, exist_ok=True)
 
     converted_files = []
     total_size = 0
 
     for md_file in sorted(md_files):
-        txt_file = md_file.with_suffix(".txt")
+        # Create corresponding TXT file in txt/ directory
+        txt_file = TXT_DIR / md_file.with_suffix(".txt").name
 
         # Read markdown content
         content = md_file.read_text(encoding="utf-8")
 
-        # Write as TXT (markdown is already readable as plain text)
+        # Write as TXT
         txt_file.write_text(content, encoding="utf-8")
 
         file_size = txt_file.stat().st_size
@@ -71,7 +78,7 @@ def convert_markdown_to_txt():
             print(f"  - {f.name} ({f.stat().st_size / 1024 / 1024:.2f} MB)")
         print("Consider splitting these files before uploading to Tawk.to")
 
-    # Optionally create a combined file
+    # Create combined file at root level
     if total_size < MAX_FILE_SIZE_BYTES:
         create_combined_file(converted_files)
     else:
@@ -82,23 +89,23 @@ def convert_markdown_to_txt():
 
 
 def create_combined_file(txt_files: list[Path]):
-    """Create a single combined TXT file with all content."""
+    """Create a single combined TXT file at root level with all content."""
 
-    combined_path = DATA_DIR / "combined_knowledge_base.txt"
     separator = "\n\n" + "=" * 80 + "\n\n"
 
     content_parts = []
     for txt_file in sorted(txt_files):
-        if txt_file.name == "combined_knowledge_base.txt":
-            continue
         content = txt_file.read_text(encoding="utf-8")
-        content_parts.append(content)
+        # Add a header showing the source file
+        header = f"# Source: {txt_file.name}\n\n"
+        content_parts.append(header + content)
 
     combined_content = separator.join(content_parts)
-    combined_path.write_text(combined_content, encoding="utf-8")
+    COMBINED_FILE.write_text(combined_content, encoding="utf-8")
 
-    size_mb = combined_path.stat().st_size / 1024 / 1024
-    print(f"\nCreated combined file: {combined_path.name} ({size_mb:.2f} MB)")
+    size_mb = COMBINED_FILE.stat().st_size / 1024 / 1024
+    print(f"\nCreated combined file: {COMBINED_FILE.name} ({size_mb:.2f} MB)")
+    print(f"Location: {COMBINED_FILE}")
 
     if size_mb < MAX_FILE_SIZE_MB:
         print("This file can be uploaded directly to Tawk.to")
