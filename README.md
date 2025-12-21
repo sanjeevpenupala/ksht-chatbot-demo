@@ -1,195 +1,190 @@
 # KSHT Chatbot Demo
 
-A demo AI chatbot using [Tawk.to](https://www.tawk.to/) for the [Karya Siddhi Hanuman Temple](https://www.dallashanuman.org/).
+A proof-of-concept AI chatbot for the [Karya Siddhi Hanuman Temple](https://www.dallashanuman.org/) that can answer visitor questions about temple services, events, timings, and more.
 
-This project demonstrates how to:
+> **Disclaimer**: This is an unofficial demo created to explore AI-assisted visitor support. Not affiliated with or endorsed by Karya Siddhi Hanuman Temple.
 
-1. Crawl a website comprehensively using [Crawl4AI](https://github.com/unclecode/crawl4ai)
-2. Extract clean content with LLM-assisted filtering (via OpenRouter)
-3. Convert content to formats compatible with Tawk.to's Knowledge Base
-4. Host a simple static demo page on GitHub Pages
+## How It Works
 
-## Architecture
+The chatbot is powered by content scraped directly from the temple's website:
+
+1. **Crawl** - A script visits every page on the temple website and saves the content
+2. **Clean** - An AI reads each page and extracts only the useful information (removing menus, footers, etc.)
+3. **Upload** - The cleaned content is uploaded to Tawk.to's Knowledge Base
+4. **Chat** - Visitors can ask questions and get instant answers based on the temple's own content
+
+### Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     GitHub Pages                             │
-│   index.html with centered logo + Tawk.to chat widget       │
+│        index.html with Tawk.to chat widget                  │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      Tawk.to                                 │
-│   - Live chat widget                                         │
-│   - AI Assist (uses Knowledge Base to answer queries)        │
+│   - Live chat widget embedded on the page                    │
+│   - AI Assist answers questions from Knowledge Base          │
 └─────────────────────────────────────────────────────────────┘
                               ▲
-                              │ (manual upload)
+                              │ manual upload
 ┌─────────────────────────────────────────────────────────────┐
 │                  Python Scripts                              │
-│   crawl.py  ──▶  data/*.md  ──▶  data/*.txt                 │
-│   (Crawl4AI)     (Markdown)      (for Tawk.to)              │
+│                                                              │
+│   crawl.py  ──▶  data/raw/*.md   (raw scraped content)      │
+│   clean.py  ──▶  data/cleaned/*.md (AI-cleaned content)     │
+│   convert.py ──▶ data/txt/*.txt  (for Tawk.to upload)       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Prerequisites
+### Current Stats
 
-- **Python 3.13+**
+| Metric               | Value  |
+| -------------------- | ------ |
+| Pages crawled        | 198    |
+| Pages cleaned        | 198    |
+| Raw content size     | 1.1 MB |
+| Cleaned content size | 872 KB |
+
+Content includes temple history, deity information, event schedules, class offerings, puja services, cafeteria menu, and more.
+
+---
+
+## Technical Details
+
+### Prerequisites
+
 - **[uv](https://docs.astral.sh/uv/)** - Fast Python package manager
-- **OpenRouter API Key** (free) - For LLM-assisted content extraction
+- **Python 3.13+**
+- **LLM Provider** - One of: Ollama (local), Anthropic, or OpenRouter
 
-## Quick Start
+### Quick Start
 
-### 1. Clone the repository
+#### 1. Clone and install
 
 ```bash
-git clone https://github.com/yourusername/ksht-chatbot-demo.git
+git clone https://github.com/spenpal/ksht-chatbot-demo.git
 cd ksht-chatbot-demo
-```
-
-### 2. Install dependencies
-
-```bash
 uv sync
 ```
 
-### 3. Configure environment variables
+#### 2. Configure environment
 
 ```bash
 cp .env.example .env
+# Edit .env with your preferred LLM provider credentials
 ```
 
-Edit `.env` and add your OpenRouter API key:
+#### 3. Set up an LLM provider
 
-```env
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-```
+Choose one:
 
-> **Get a free API key:** Sign up at [openrouter.ai](https://openrouter.ai/) and create an API key. Free models like `google/gemma-3-27b-it:free` are available.
+| Provider       | Speed  | Privacy | Cost      | Setup                                                                 |
+| -------------- | ------ | ------- | --------- | --------------------------------------------------------------------- |
+| **Ollama**     | Fast   | Local   | Free      | `brew install ollama && ollama pull llama3.2:3b`                      |
+| **Anthropic**  | Fast   | Cloud   | Paid      | Get API key at [console.anthropic.com](https://console.anthropic.com) |
+| **OpenRouter** | Varies | Cloud   | Free tier | Get API key at [openrouter.ai](https://openrouter.ai)                 |
 
-### 4. Crawl the website
+#### 4. Run the pipeline
 
 ```bash
+# Step 1: Crawl the website (saves to data/raw/)
 uv run scripts/crawl.py
-```
 
-This will:
+# Step 2: Clean content with AI (saves to data/cleaned/)
+uv run scripts/clean.py
 
-- Crawl the temple website (https://www.dallashanuman.org/)
-- Extract content using LLM-assisted filtering
-- Save Markdown files to the `data/` directory
-
-### 5. Convert to TXT format
-
-```bash
+# Step 3: Convert to TXT for Tawk.to (saves to data/txt/)
 uv run scripts/convert.py
 ```
 
-This converts Markdown files to TXT format, which Tawk.to accepts for upload.
+#### 5. Upload to Tawk.to
 
-### 6. Upload to Tawk.to
+1. Log into [Tawk.to dashboard](https://dashboard.tawk.to/)
+2. Go to **Administration** → **AI Assist** → **Data Sources**
+3. Click **Upload Files** and select files from `data/txt/`
 
-Since Tawk.to doesn't have a public API for document uploads, you'll need to upload manually:
+### Scripts
 
-1. Log into your [Tawk.to dashboard](https://dashboard.tawk.to/)
-2. Navigate to **Administration** → **AI Assist** → **Data Sources**
-3. Click **Upload Files**
-4. Select the TXT files from the `data/` folder
-5. Wait for Tawk.to to process the content
+#### `crawl.py` - Web Crawler
 
-## Project Structure
+Uses [Crawl4AI](https://github.com/unclecode/crawl4ai) to crawl the temple website:
+
+- **BFS Deep Crawl**: Systematically visits all internal links up to configured depth
+- **JavaScript Rendering**: Handles the Nuxt.js-based site with browser automation
+- **Streaming Mode**: Saves pages incrementally as they're crawled
+
+Configuration (via `.env`):
+
+- `MAX_CRAWL_DEPTH` - How many links deep to crawl (default: 3)
+- `MAX_PAGES` - Maximum pages to crawl (default: 100)
+
+#### `clean.py` - AI Content Cleaner
+
+Uses [LiteLLM](https://github.com/BerriAI/litellm) for unified LLM access:
+
+- **Multi-Provider**: Supports Ollama, Anthropic, and OpenRouter
+- **Adaptive Rate Limiting**: Automatically detects and handles rate limits from any provider
+- **Smart Retry**: Parses error messages to wait exactly as long as needed
+
+The AI is prompted to:
+
+- Remove navigation, menus, footers, sidebars
+- Remove ads, widgets, social media buttons
+- Keep temple information, schedules, services, contact info
+- Preserve markdown formatting
+
+#### `convert.py` - Format Converter
+
+Converts cleaned markdown to TXT for Tawk.to:
+
+- Validates file size limits (5 MB max per file)
+- Creates combined knowledge base file if under limit
+- Preserves markdown formatting in TXT output
+
+### Configuration
+
+All options are in `.env.example`:
+
+```bash
+# LLM Providers (used by clean.py)
+OLLAMA_MODEL=llama3.2:3b
+OLLAMA_BASE_URL=http://localhost:11434
+
+ANTHROPIC_API_KEY=your_key_here
+ANTHROPIC_MODEL=claude-3-5-haiku-latest
+
+OPENROUTER_API_KEY=your_key_here
+OPENROUTER_MODEL=google/gemma-3-27b-it:free
+
+# Crawl Settings (used by crawl.py)
+MAX_CRAWL_DEPTH=3
+MAX_PAGES=100
+```
+
+### Project Structure
 
 ```
 ksht-chatbot-demo/
-├── index.html          # Static demo page (for GitHub Pages)
+├── index.html          # Frontend with Tawk.to widget
 ├── images/
-│   └── ksht-logo.png   # Temple logo (400x400)
+│   └── ksht-logo.png   # Temple logo
 ├── scripts/
-│   ├── crawl.py        # Website crawler using Crawl4AI
+│   ├── crawl.py        # Web crawler
+│   ├── clean.py        # AI content cleaner
 │   └── convert.py      # Markdown to TXT converter
-├── data/               # Crawled content (Markdown + TXT files)
-├── .env.example        # Environment variables template
-├── .gitignore          # Git ignore rules
-├── pyproject.toml      # Python project configuration
-└── README.md           # This file
+├── data/               # Generated content (git-ignored)
+│   ├── raw/            # Raw scraped markdown
+│   ├── cleaned/        # AI-cleaned markdown
+│   └── txt/            # TXT files for upload
+├── .env.example        # Configuration template
+└── pyproject.toml      # Python dependencies
 ```
 
-## Configuration
+### Dependencies
 
-### Environment Variables
-
-| Variable             | Required | Default                      | Description                           |
-| -------------------- | -------- | ---------------------------- | ------------------------------------- |
-| `OPENROUTER_API_KEY` | Yes\*    | -                            | OpenRouter API key for LLM extraction |
-| `OPENROUTER_MODEL`   | No       | `google/gemma-3-27b-it:free` | OpenRouter model to use               |
-| `MAX_CRAWL_DEPTH`    | No       | `3`                          | Maximum crawl depth                   |
-| `MAX_PAGES`          | No       | `100`                        | Maximum pages to crawl                |
-
-\*The crawler will work without an API key, but content filtering will be less accurate.
-
-### OpenRouter Free Models
-
-Recommended free models for content extraction:
-
-| Model                                    | Context | Best For                   |
-| ---------------------------------------- | ------- | -------------------------- |
-| `google/gemma-3-27b-it:free`             | 131K    | General content extraction |
-| `meta-llama/llama-3.3-70b-instruct:free` | 131K    | Higher quality extraction  |
-
-## GitHub Pages Deployment
-
-The demo page can be hosted on GitHub Pages:
-
-1. Push the repository to GitHub
-2. Go to **Settings** → **Pages**
-3. Under "Source", select **Deploy from a branch**
-4. Choose the `main` branch and `/ (root)` folder
-5. Click **Save**
-
-Your site will be available at: `https://<username>.github.io/ksht-chatbot-demo/`
-
-## How It Works
-
-### 1. Web Crawling (crawl.py)
-
-Uses Crawl4AI with:
-
-- **BFS Deep Crawl Strategy**: Systematically crawls all pages within the domain
-- **LLM Content Filter**: Uses OpenRouter to intelligently extract relevant content
-- **Markdown Generation**: Outputs clean, structured Markdown
-
-### 2. Format Conversion (convert.py)
-
-Converts Markdown to TXT because:
-
-- Tawk.to only accepts PDF, CSV, or TXT for Knowledge Base uploads
-- TXT preserves Markdown readability while being compatible
-- Automatically checks file size limits (5 MB max for TXT)
-
-### 3. Tawk.to AI Assist
-
-Once TXT files are uploaded:
-
-- Tawk.to indexes the content in its Knowledge Base
-- AI Assist uses this knowledge to answer visitor questions
-- The chat widget on your page connects visitors to the AI
-
-## Troubleshooting
-
-### Crawler not finding pages
-
-- Check if the target website uses JavaScript rendering (may need browser mode)
-- Verify the website is accessible and not blocking crawlers
-- Try increasing `MAX_CRAWL_DEPTH` in `.env`
-
-### LLM extraction not working
-
-- Verify your `OPENROUTER_API_KEY` is correct
-- Check if the free model has rate limits
-- The crawler will fall back to basic filtering if LLM fails
-
-### Files too large for Tawk.to
-
-- Tawk.to has a 5 MB limit for TXT files
-- The converter creates individual files per page
-- Upload files individually instead of the combined file
+- `crawl4ai` - Web crawling with browser automation
+- `litellm` - Unified LLM API (Ollama, Anthropic, OpenRouter, etc.)
+- `questionary` - Interactive CLI prompts
+- `python-dotenv` - Environment variable management
