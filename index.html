@@ -22,6 +22,23 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
         }
 
+        .github-link {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            color: #333;
+            transition: color 0.2s;
+        }
+
+        .github-link:hover {
+            color: #000;
+        }
+
+        .github-link svg {
+            width: 32px;
+            height: 32px;
+        }
+
         .container {
             text-align: center;
             padding: 2rem;
@@ -63,9 +80,27 @@
                 transform: translateY(-3px);
             }
         }
+
+        .disclaimer {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #666;
+            font-size: 0.75rem;
+            text-align: center;
+            max-width: 90%;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
+    <a href="https://github.com/spenpal/ksht-chatbot-demo" target="_blank" rel="noopener noreferrer" class="github-link" title="View on GitHub">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+    </a>
+
     <div class="container">
         <img
             src="images/ksht-logo.png"
@@ -75,6 +110,11 @@
         <p class="subtitle">AI Chatbot Demo</p>
         <p class="chat-hint">Click the chat icon <span>👉</span> to ask a question</p>
     </div>
+
+    <p class="disclaimer">
+        This is an unofficial demo created as a proof of concept for AI-assisted visitor support.<br>
+        Not affiliated with or endorsed by Karya Siddhi Hanuman Temple.
+    </p>
 
     <!--Start of Tawk.to Script-->
     <script type="text/javascript">
