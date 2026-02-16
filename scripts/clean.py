@@ -9,6 +9,7 @@ Usage:
     uv run scripts/clean.py
 """
 
+import argparse
 import os
 import re
 import shutil
@@ -247,6 +248,14 @@ def process_file(filepath: Path, provider: str) -> bool:
 
 def main():
     """Main entry point."""
+    parser = argparse.ArgumentParser(description="Clean raw markdown with LLM")
+    parser.add_argument(
+        "--provider",
+        choices=["ollama", "anthropic", "openrouter"],
+        help="LLM provider (skips interactive prompt)",
+    )
+    args = parser.parse_args()
+
     # Check raw directory exists
     if not RAW_DIR.exists():
         print(f"Error: Raw directory not found: {RAW_DIR}")
@@ -263,8 +272,11 @@ def main():
 
     print(f"Found {len(md_files)} files in {RAW_DIR}")
 
-    # Prompt for LLM provider
-    provider = prompt_llm_selection()
+    # Use CLI arg or prompt for LLM provider
+    if args.provider:
+        provider = args.provider
+    else:
+        provider = prompt_llm_selection()
 
     if provider == "ollama":
         print(f"\nUsing Ollama (model: {OLLAMA_MODEL})")
